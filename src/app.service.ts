@@ -12,6 +12,8 @@ export class AppService {
     if (!process.env.API_HASH) {
       console.warn('API_HASH is not set in environment variables');
     }
+
+    this.getHello()
   }
 
   async getHello(): Promise<any> {
@@ -44,5 +46,5 @@ export class AppService {
     return await this.llmService.extractInformationFromText(resultMapped);
   }
 
-  testGramJS() {}
+  testGramJS() { }
 }

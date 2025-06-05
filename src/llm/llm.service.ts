@@ -9,8 +9,10 @@ dotenv.config(); // Carga las variables de entorno desde .env
 
 @Injectable()
 export class LlmService {
-  private openai: OpenAI;
+  private openai: ChatOpenAI;
   private googleGemini: ChatGoogleGenerativeAI;
+
+  private providersPool: (ChatOpenAI | ChatGoogleGenerativeAI)[]
 
   constructor() {
     if (!process.env.OPENAI_API_KEY) {
@@ -24,37 +26,22 @@ export class LlmService {
       );
     }
 
-    this.openai = new OpenAI({
+    console.log(process.env.GOOGLE_API_KEY, '.s.s.s.s.s')
+    this.openai = new ChatOpenAI({
       openAIApiKey: process.env.OPENAI_API_KEY,
+      model: 'gpt-4.1',
+      temperature: 0,
     });
 
     this.googleGemini = new ChatGoogleGenerativeAI({
       apiKey: process.env.GOOGLE_API_KEY,
       model: 'gemini',
     });
-  }
 
-  async getResponseFromOpenAI(
-    userPrompt: string,
-    systemPrompt: string = '',
-    variables: Record<string, any> = {},
-  ): Promise<string> {
-    const promptTemplate = ChatPromptTemplate.fromMessages([
-      ['system', systemPrompt],
-      ['user', userPrompt],
-    ]);
-
-    const prompt = await promptTemplate.invoke(variables);
-
-    return await this.openai.invoke(prompt.toChatMessages());
+    this.providersPool = [this.openai, this.googleGemini]
   }
 
   async extractInformationFromText(message: string): Promise<any> {
-    const openAiChat = new ChatOpenAI({
-      openAIApiKey: process.env.OPENAI_API_KEY,
-      model: 'gpt-4o-mini',
-      temperature: 0,
-    });
 
     const promptTemplate = ChatPromptTemplate.fromMessages([
       [
@@ -70,14 +57,21 @@ export class LlmService {
       ['human', '{text}'],
     ]);
 
-    if (!openAiChat) {
-      throw new Error('OpenAI instance is not initialized.');
+    for (const provider of this.providersPool) {
+
+      try {
+        const structured_llm = provider.withStructuredOutput(JOBS_SCHEMA);
+
+        const prompt = await promptTemplate.invoke({ text: message });
+
+        return await structured_llm.invoke(prompt);
+
+      } catch (error) {
+        console.error("Llamada Fallida para: ", provider.model)
+        console.log(error)
+      }
+
     }
 
-    const structured_llm = openAiChat.withStructuredOutput(JOBS_SCHEMA);
-
-    const prompt = await promptTemplate.invoke({ text: message });
-
-    return await structured_llm.invoke(prompt);
   }
 }

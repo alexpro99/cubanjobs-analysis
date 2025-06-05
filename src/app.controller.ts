@@ -26,12 +26,12 @@ export class AppController {
       variables,
     });
 
-    const response = await this.llmService.getResponseFromOpenAI(
-      userPrompt,
-      systemPrompt,
-      variables,
-    );
+    // const response = await this.llmService.getResponseFromOpenAI(
+    //   userPrompt,
+    //   systemPrompt,
+    //   variables,
+    // );
 
-    return response
+    return 'en desarrollo'
   }
 }
