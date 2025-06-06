@@ -13,9 +13,9 @@ export class AppService {
       console.warn('API_HASH is not set in environment variables');
     }
 
-    this.getHello()
   }
 
+  //Ejemplo de como usar el cliente de Telegram para obtener mensajes de un canal
   async getHello(): Promise<any> {
     if (!process.env.API_ID) {
       throw new Error('API_ID is not set in environment variables');

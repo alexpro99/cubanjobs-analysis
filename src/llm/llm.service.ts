@@ -26,7 +26,6 @@ export class LlmService {
       );
     }
 
-    console.log(process.env.GOOGLE_API_KEY, '.s.s.s.s.s')
     this.openai = new ChatOpenAI({
       openAIApiKey: process.env.OPENAI_API_KEY,
       model: 'gpt-4.1',

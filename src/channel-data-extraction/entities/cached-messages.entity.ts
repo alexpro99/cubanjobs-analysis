@@ -1,0 +1,34 @@
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { ManyToOne } from "typeorm";
+import { ChannelConfiguration } from "./channel-configurations.entity";
+
+
+@Entity()
+export class CachedMessage {
+    @PrimaryGeneratedColumn("uuid")
+    id: string;
+
+    @Column()
+    messageHash: string;
+
+    @ManyToOne(() => ChannelConfiguration, (channel) => channel.cachedMessages, { nullable: true })
+    channel?: ChannelConfiguration;
+
+    @Column()
+    content: string;
+
+    @Column()
+    timestamp: Date;
+
+    @Column()
+    authorId: string;
+
+    @Column()
+    authorName: string;
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
+}
