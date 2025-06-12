@@ -4,7 +4,7 @@ import { ChannelConfiguration } from './entities/channel-configurations.entity';
 import { ChannelDataExtractionService } from './channel-data-extraction.service';
 import { TelegramControlService } from 'src/telegram-control/telegram-control.service';
 import { SchedulerRegistry } from '@nestjs/schedule';
-import { LlmService } from 'src/llm/llm.service';
+import { LlmModule } from 'src/llm/llm.module';
 
 @Module({
     imports: [TypeOrmModule.forFeature([ChannelConfiguration]), LlmModule],
