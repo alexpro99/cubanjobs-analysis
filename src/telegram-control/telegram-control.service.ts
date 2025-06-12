@@ -68,7 +68,7 @@ export class TelegramControlService {
 
             if (newMessages && newMessages.length > 0) {
                 // 3. Procesar los mensajes (aquí va tu lógica de procesamiento)
-                await this.processMessages(newMessages, extractionPrompt);
+                await this.processMessages(newMessages, extractionPrompt, channelName);
 
                 // 4. Actualizar lastExtractedMessageId en la base de datos.  Asumo que los mensajes tienen un ID numérico y ordenado.
                 const lastMessageId = newMessages[newMessages.length - 1].id; // Asumiendo que 'id' es la propiedad del ID del mensaje
@@ -94,12 +94,12 @@ export class TelegramControlService {
     }
 
 
-    private async processMessages(messages: TotalList<Api.Message>, extractionPrompt: string): Promise<void> {
+    private async processMessages(messages: TotalList<Api.Message>, extractionPrompt: string, channelName: string): Promise<void> {
         // Aquí iría tu lógica para procesar los mensajes extraídos,
         // utilizando el extractionPrompt.
         this.logger.log(`Procesando ${messages.length} mensajes con el prompt: ${extractionPrompt}`);
 
-        const filteredMessages = await this.handleCacheMessages(messages);
+        const filteredMessages = await this.handleCacheMessages(messages, channelName);
 
 
         const parsedMessages = filteredMessages.map((message, i) => {
@@ -118,12 +118,10 @@ export class TelegramControlService {
 
         const extractedInformation = await this.llmService.extractInformationFromText(parsedMessages, extractionPrompt, ['ollama'])
 
-        this.logger.log(`Información extraída: ${(extractedInformation)}`);
-
-
+        this.logger.log(`Información extraída: ${(JSON.stringify(extractedInformation))}`);
     }
 
-    private async handleCacheMessages(messages: TotalList<Api.Message>): Promise<TotalList<Api.Message>> {
+    private async handleCacheMessages(messages: TotalList<Api.Message>, channelName: string): Promise<TotalList<Api.Message>> {
         const filteredMessages: any[] = [];
 
         for (const message of messages) {
@@ -143,12 +141,21 @@ export class TelegramControlService {
                     continue; // Si el mensaje ya está en caché, saltar al siguiente
                 }
 
+                const channelConfig = await this.channelConfigRepository.findOne({
+                    where: { channelName: channelName },
+                });
+
                 const cachedMessage = new CachedMessage();
                 cachedMessage.messageHash = hashedMessage;
                 cachedMessage.content = message.message;
                 cachedMessage.timestamp = new Date(message.date * 1000);
-                cachedMessage.authorId = message.fromId ? message.fromId.toString() : 'unknown';
-                cachedMessage.authorName = message.fromId ? message.fromId.toString() : 'unknown';
+                cachedMessage.authorId = message.fromId ? JSON.stringify(message.fromId) : 'unknown';
+                cachedMessage.authorName = message.postAuthor ? message.postAuthor : 'unknown';
+                cachedMessage.messageId = message.id;
+
+                if (channelConfig) {
+                    cachedMessage.channel = channelConfig;
+                }
 
                 await this.cachedMessageRepository.save(cachedMessage);
 
@@ -166,9 +173,8 @@ export class TelegramControlService {
     private generateMessageHash(message: Api.Message): string {
         const content = message.message || '';
         const authorId = message.fromId ? message.fromId.toString() : 'unknown';
-        const timestamp = new Date(message.date * 1000).toISOString();
 
-        return crypto.createHash('sha256').update(content + authorId + timestamp).digest('hex');
+        return crypto.createHash('sha256').update(content + authorId).digest('hex');
     }
 
 

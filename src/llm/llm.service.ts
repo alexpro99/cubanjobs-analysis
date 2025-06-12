@@ -5,6 +5,7 @@ import { ChatPromptTemplate } from '@langchain/core/prompts';
 import * as dotenv from 'dotenv';
 import { JOBS_SCHEMA } from './schemas/jobs.schema';
 import { ChatOllama } from '@langchain/ollama';
+import { JsonOutputParser } from "@langchain/core/output_parsers";
 
 dotenv.config(); // Carga las variables de entorno desde .env
 
@@ -48,24 +49,36 @@ export class LlmService {
 
   async extractInformationFromText(message: string, systemPrompt: string, models: string[] = ['googleGemini', 'openai', 'ollama']): Promise<any> {
 
+    if (!message) {
+      throw new Error('No hay mensaje que procesar.');
+    }
+
+    if (!systemPrompt) {
+      throw new Error('No hay prompt del sistema definido.');
+    }
+
+    const escapedSystemPrompt = systemPrompt.replace(/\{/g, '{{').replace(/\}/g, '}}');
+
     const promptTemplate = ChatPromptTemplate.fromMessages([
       [
         'system',
-        systemPrompt,
+        escapedSystemPrompt,
       ],
       ['human', '{text}'],
     ]);
 
+    const parser = new JsonOutputParser<any>()
+
     for (const model of models) {
-      const provider = this.llmsPool[model];
+      const provider: ChatOpenAI | ChatGoogleGenerativeAI | ChatOllama | undefined = this.llmsPool[model];
       if (!provider) continue;
 
       try {
-        const structured_llm = provider.withStructuredOutput(JOBS_SCHEMA);
+        const prompt = await promptTemplate.partial({ text: message });
 
-        const prompt = await promptTemplate.invoke({ text: message });
-
-        return await structured_llm.invoke(prompt);
+        return await prompt.pipe(provider).pipe(parser).invoke({
+          text: message,
+        });
 
       } catch (error) {
         console.error("Llamada Fallida para: ", provider.model)
@@ -73,6 +86,5 @@ export class LlmService {
       }
 
     }
-
   }
 }

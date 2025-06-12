@@ -8,5 +8,6 @@ import { CachedMessage } from 'src/channel-data-extraction/entities/cached-messa
 @Module({
   providers: [TelegramControlService],
   imports: [TypeOrmModule.forFeature([ChannelConfiguration]), TypeOrmModule.forFeature([CachedMessage]), LlmModule],
+  exports: [TelegramControlService],
 })
 export class TelegramControlModule { }

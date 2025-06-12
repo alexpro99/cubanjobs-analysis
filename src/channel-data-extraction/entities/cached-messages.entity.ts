@@ -26,6 +26,9 @@ export class CachedMessage {
     @Column()
     authorName: string;
 
+    @Column({ nullable: true })
+    messageId?: number;
+
     @CreateDateColumn()
     createdAt: Date;
 
