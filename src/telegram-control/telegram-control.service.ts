@@ -1,14 +1,47 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CachedMessage } from 'src/channel-data-extraction/entities/cached-messages.entity';
 import { ChannelConfiguration } from 'src/channel-data-extraction/entities/channel-configurations.entity';
+import { LlmService } from 'src/llm/llm.service';
+import { Api, TelegramClient } from 'telegram';
+import { TotalList } from 'telegram/Helpers';
+import { StringSession } from 'telegram/sessions';
 import { Repository } from 'typeorm';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class TelegramControlService {
     private readonly logger = new Logger(TelegramControlService.name);
 
-    constructor(@InjectRepository(ChannelConfiguration)
-    private channelConfigRepository: Repository<ChannelConfiguration>) { }
+    client!: TelegramClient
+    stringSession!: StringSession
+
+    constructor(
+        @InjectRepository(ChannelConfiguration)
+        private channelConfigRepository: Repository<ChannelConfiguration>,
+        @InjectRepository(CachedMessage)
+        private cachedMessageRepository: Repository<CachedMessage>,
+        private readonly llmService: LlmService
+    ) {
+
+        if (!process.env.API_ID) {
+            throw new Error('API_ID is not set in environment variables');
+        }
+        if (!process.env.API_HASH) {
+            throw new Error('API_HASH is not set in environment variables');
+        }
+
+        this.stringSession = new StringSession(process.env.SESSION_HASH); // fill this later with the value from session.save()
+
+        this.client = new TelegramClient(
+            this.stringSession,
+            parseInt(process.env.API_ID),
+            process.env.API_HASH,
+            {},
+        );
+
+        this.client.connect()
+    }
 
 
     async extractAndProcessMessages(
@@ -33,8 +66,6 @@ export class TelegramControlService {
             // 2. Lógica para conectarse a Telegram, obtener mensajes (usando lastExtractedMessageId), y procesarlos
             const newMessages = await this.fetchMessagesFromTelegram(channelName, messagesPerExtraction, lastExtractedMessageId);  // Reemplaza con tu lógica real
 
-            console.log(newMessages, '.s.s.')
-
             if (newMessages && newMessages.length > 0) {
                 // 3. Procesar los mensajes (aquí va tu lógica de procesamiento)
                 await this.processMessages(newMessages, extractionPrompt);
@@ -58,28 +89,87 @@ export class TelegramControlService {
 
 
     // Simulacro de la función para obtener mensajes de Telegram
-    private async fetchMessagesFromTelegram(channelName: string, limit: number, offsetId: number): Promise<{ id: number; text: string }[]> {
-        //  Aquí iría tu lógica para conectarte a la API de Telegram y obtener los mensajes.
-        //  Este es solo un ejemplo que devuelve mensajes simulados.
-        const messages: { id: number; text: string }[] = [];
-        for (let i = 0; i < limit; i++) {
-            messages.push({
-                id: offsetId + i + 1,
-                text: `Mensaje ${offsetId + i + 1} del canal ${channelName}`,
-            });
-        }
-        return messages;
+    private async fetchMessagesFromTelegram(channelName: string, limit: number, offsetId: number): Promise<TotalList<Api.Message>> {
+        return await this.client.getMessages(channelName, { limit, reverse: true, minId: offsetId });
     }
 
 
-    private async processMessages(messages: { id: number; text: string }[], extractionPrompt: string): Promise<void> {
+    private async processMessages(messages: TotalList<Api.Message>, extractionPrompt: string): Promise<void> {
         // Aquí iría tu lógica para procesar los mensajes extraídos,
         // utilizando el extractionPrompt.
         this.logger.log(`Procesando ${messages.length} mensajes con el prompt: ${extractionPrompt}`);
-        messages.forEach(message => {
-            this.logger.log(`Procesando mensaje ${message.id}: ${message.text}`);
+
+        const filteredMessages = await this.handleCacheMessages(messages);
+
+
+        const parsedMessages = filteredMessages.map((message, i) => {
+
+            return `Oferta ${i + 1}
+            
+            ${message.message}
+            Publicado: ${new Date(message.date * 1000)}
+            Por: ${JSON.stringify(message.fromId)}
+            oferta_id: ${message.id}
+
+            `
+
             // Lógica de procesamiento del mensaje aquí
-        });
+        }).join('');
+
+        const extractedInformation = await this.llmService.extractInformationFromText(parsedMessages, extractionPrompt, ['ollama'])
+
+        this.logger.log(`Información extraída: ${(extractedInformation)}`);
+
+
     }
+
+    private async handleCacheMessages(messages: TotalList<Api.Message>): Promise<TotalList<Api.Message>> {
+        const filteredMessages: any[] = [];
+
+        for (const message of messages) {
+            this.logger.log(`Procesando mensaje con id ${message.id} y contenido: ${message.message}`);
+            try {
+                if (!message.message) continue;
+
+                const hashedMessage = this.generateMessageHash(message);
+
+                // Verificar si el mensaje ya está en caché
+                const existingMessage = await this.cachedMessageRepository.findOne({
+                    where: { messageHash: hashedMessage },
+                });
+
+                if (existingMessage) {
+                    this.logger.log(`Mensaje ya procesado: ${existingMessage.messageHash}`);
+                    continue; // Si el mensaje ya está en caché, saltar al siguiente
+                }
+
+                const cachedMessage = new CachedMessage();
+                cachedMessage.messageHash = hashedMessage;
+                cachedMessage.content = message.message;
+                cachedMessage.timestamp = new Date(message.date * 1000);
+                cachedMessage.authorId = message.fromId ? message.fromId.toString() : 'unknown';
+                cachedMessage.authorName = message.fromId ? message.fromId.toString() : 'unknown';
+
+                await this.cachedMessageRepository.save(cachedMessage);
+
+                filteredMessages.push(message);
+            } catch (error) {
+                this.logger.error(`Error procesando mensaje con id ${message.id}: ${error.message}`, error.stack);
+                // Continuar con el siguiente mensaje
+                continue;
+            }
+        }
+
+        return filteredMessages;
+    }
+
+    private generateMessageHash(message: Api.Message): string {
+        const content = message.message || '';
+        const authorId = message.fromId ? message.fromId.toString() : 'unknown';
+        const timestamp = new Date(message.date * 1000).toISOString();
+
+        return crypto.createHash('sha256').update(content + authorId + timestamp).digest('hex');
+    }
+
 
 }

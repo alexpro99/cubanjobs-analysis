@@ -23,6 +23,7 @@
   "dependencies": {
     "@langchain/core": "^0.3.57",
     "@langchain/google-genai": "^0.2.10",
+    "@langchain/ollama": "^0.2.1",
     "@langchain/openai": "^0.5.12",
     "@nestjs/common": "^11.1.2",
     "@nestjs/core": "^11.1.2",

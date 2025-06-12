@@ -9,7 +9,7 @@ export const JOBS_SCHEMA = z.object({
       location: z.string().describe('The location of the job').nullish(),
       salary: z.string().describe('The salary of the job').nullish(),
       date: z.string().describe('The date of the job in format YYYY-MM-DD').nullish(),
-      tecnology: z
+      technologies: z
         .array(z.string())
         .describe(
           'A list of technologies relevant to the job (e.g., React, Angular, Vue, Odoo).',

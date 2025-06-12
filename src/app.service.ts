@@ -34,7 +34,7 @@ export class AppService {
 
     await client.connect(); // This assumes you have already authenticated with .start()
 
-    const result = await client.getMessages('cubanjobs', { limit: 10 });
+    const result = await client.getMessages('cubanjobs', { limit: 10,  });
 
     const resultMapped = result
       .map(
@@ -43,7 +43,7 @@ export class AppService {
       )
       .join('\n --------- \n');
 
-    return await this.llmService.extractInformationFromText(resultMapped);
+    return await this.llmService.extractInformationFromText(resultMapped, '', ['googleGemini', 'openai', 'ollama']);
   }
 
   testGramJS() { }

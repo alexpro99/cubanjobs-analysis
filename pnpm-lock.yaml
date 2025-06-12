@@ -14,6 +14,9 @@ importers:
       '@langchain/google-genai':
         specifier: ^0.2.10
         version: 0.2.10(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55)))(zod@3.25.55)
+      '@langchain/ollama':
+        specifier: ^0.2.1
+        version: 0.2.1(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55)))
       '@langchain/openai':
         specifier: ^0.5.12
         version: 0.5.12(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55)))
@@ -40,7 +43,7 @@ importers:
         version: 16.5.0
       langchain:
         specifier: ^0.3.27
-        version: 0.3.27(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55)))(@langchain/google-genai@0.2.10(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55)))(zod@3.25.55))(openai@4.104.0(zod@3.25.55))(typeorm@0.3.24(pg@8.16.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.31)(@types/node@22.15.30)(typescript@5.8.3)))
+        version: 0.3.27(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55)))(@langchain/google-genai@0.2.10(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55)))(zod@3.25.55))(@langchain/ollama@0.2.1(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55))))(openai@4.104.0(zod@3.25.55))(typeorm@0.3.24(pg@8.16.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.31)(@types/node@22.15.30)(typescript@5.8.3)))
       pg:
         specifier: ^8.16.0
         version: 8.16.0
@@ -651,6 +654,12 @@ packages:
     engines: {node: '>=18'}
     peerDependencies:
       '@langchain/core': '>=0.3.55 <0.4.0'
+
+  '@langchain/ollama@0.2.1':
+    resolution: {integrity: sha512-9WQ/rJV002n2f/aBPzNKBZU7kJfhqDnaGTWeIKO5gM0wZ+Rb2mfk7psluFIedachwsM/FQ+oIBcViHriaXngzA==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@langchain/core': '>=0.2.21 <0.4.0'
 
   '@langchain/openai@0.5.12':
     resolution: {integrity: sha512-k7rxBY3ed/HIiMLd6HBqFibsfB0+L6c82H8JgXDqKeyUoACJIi1JaKHXmofmCeF2SBXBU9dog4gEGpHfcUDGUA==}
@@ -2933,6 +2942,9 @@ packages:
     resolution: {integrity: sha512-W67iLl4J2EXEGTbfeHCffrjDfitvLANg0UlX3wFUUSTx92KXRFegMHUVgSqE+wvhAbi4WqjGg9czysTV2Epbew==}
     engines: {node: '>= 0.4'}
 
+  ollama@0.5.16:
+    resolution: {integrity: sha512-OEbxxOIUZtdZgOaTPAULo051F5y+Z1vosxEYOoABPnQKeW7i4O8tJNlxCB+xioyoorVqgjkdj+TA1f1Hy2ug/w==}
+
   on-finished@2.4.1:
     resolution: {integrity: sha512-oVlzkg3ENAhCk2zdv7IJwd/QUD4z2RxRwpkcGY8psCVcCYZNq4wYnVWALHM+brtuJjePWiYF/ClmuDr8Ch5+kg==}
     engines: {node: '>= 0.8'}
@@ -3859,6 +3871,9 @@ packages:
     resolution: {integrity: sha512-/REy6amwPZl44DDzvRCkaI1q1bIiQB0mEFQLUrhz3z2EK91cp3n72rAjUlrTP0zV22HJIUOVHQGPxhFRjxjt+Q==}
     engines: {node: '>=4.0.0'}
 
+  whatwg-fetch@3.6.20:
+    resolution: {integrity: sha512-EqhiFU6daOA8kpjOWTL0olhVOF3i7OrFzSYiGsEMB8GcXS+RrzauAERX65xMeNWVqxA6HXH2m69Z9LaKKdisfg==}
+
   whatwg-url@5.0.0:
     resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
 
@@ -4628,6 +4643,14 @@ snapshots:
       zod-to-json-schema: 3.24.5(zod@3.25.55)
     transitivePeerDependencies:
       - zod
+
+  '@langchain/ollama@0.2.1(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55)))':
+    dependencies:
+      '@langchain/core': 0.3.57(openai@4.104.0(zod@3.25.55))
+      ollama: 0.5.16
+      uuid: 10.0.0
+      zod: 3.25.55
+      zod-to-json-schema: 3.24.5(zod@3.25.55)
 
   '@langchain/openai@0.5.12(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55)))':
     dependencies:
@@ -6895,7 +6918,7 @@ snapshots:
 
   kleur@3.0.3: {}
 
-  langchain@0.3.27(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55)))(@langchain/google-genai@0.2.10(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55)))(zod@3.25.55))(openai@4.104.0(zod@3.25.55))(typeorm@0.3.24(pg@8.16.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.31)(@types/node@22.15.30)(typescript@5.8.3))):
+  langchain@0.3.27(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55)))(@langchain/google-genai@0.2.10(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55)))(zod@3.25.55))(@langchain/ollama@0.2.1(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55))))(openai@4.104.0(zod@3.25.55))(typeorm@0.3.24(pg@8.16.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.31)(@types/node@22.15.30)(typescript@5.8.3))):
     dependencies:
       '@langchain/core': 0.3.57(openai@4.104.0(zod@3.25.55))
       '@langchain/openai': 0.5.12(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55)))
@@ -6912,6 +6935,7 @@ snapshots:
       zod-to-json-schema: 3.24.5(zod@3.25.55)
     optionalDependencies:
       '@langchain/google-genai': 0.2.10(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55)))(zod@3.25.55)
+      '@langchain/ollama': 0.2.1(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.55)))
       typeorm: 0.3.24(pg@8.16.0)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.31)(@types/node@22.15.30)(typescript@5.8.3))
     transitivePeerDependencies:
       - encoding
@@ -7116,6 +7140,10 @@ snapshots:
   object-assign@4.1.1: {}
 
   object-inspect@1.13.4: {}
+
+  ollama@0.5.16:
+    dependencies:
+      whatwg-fetch: 3.6.20
 
   on-finished@2.4.1:
     dependencies:
@@ -8019,6 +8047,8 @@ snapshots:
       yaeti: 0.0.6
     transitivePeerDependencies:
       - supports-color
+
+  whatwg-fetch@3.6.20: {}
 
   whatwg-url@5.0.0:
     dependencies:

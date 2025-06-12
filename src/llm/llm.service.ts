@@ -4,15 +4,18 @@ import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import * as dotenv from 'dotenv';
 import { JOBS_SCHEMA } from './schemas/jobs.schema';
+import { ChatOllama } from '@langchain/ollama';
 
 dotenv.config(); // Carga las variables de entorno desde .env
 
 @Injectable()
 export class LlmService {
-  private openai: ChatOpenAI;
-  private googleGemini: ChatGoogleGenerativeAI;
 
-  private providersPool: (ChatOpenAI | ChatGoogleGenerativeAI)[]
+  private llmsPool: {
+    openai: ChatOpenAI;
+    googleGemini: ChatGoogleGenerativeAI;
+    ollama: ChatOllama;
+  };
 
   constructor() {
     if (!process.env.OPENAI_API_KEY) {
@@ -26,37 +29,36 @@ export class LlmService {
       );
     }
 
-    this.openai = new ChatOpenAI({
-      openAIApiKey: process.env.OPENAI_API_KEY,
-      model: 'gpt-4.1',
-      temperature: 0,
-    });
+    this.llmsPool = {
+      openai: new ChatOpenAI({
+        openAIApiKey: process.env.OPENAI_API_KEY,
+        model: 'gpt-4.1',
+        temperature: 0,
+      }),
+      googleGemini: new ChatGoogleGenerativeAI({
+        apiKey: process.env.GOOGLE_API_KEY,
+        model: 'gemini',
+      }),
+      ollama: new ChatOllama({
+        model: 'gemma3:4b'
+      })
+    }
 
-    this.googleGemini = new ChatGoogleGenerativeAI({
-      apiKey: process.env.GOOGLE_API_KEY,
-      model: 'gemini',
-    });
-
-    this.providersPool = [this.openai, this.googleGemini]
   }
 
-  async extractInformationFromText(message: string): Promise<any> {
+  async extractInformationFromText(message: string, systemPrompt: string, models: string[] = ['googleGemini', 'openai', 'ollama']): Promise<any> {
 
     const promptTemplate = ChatPromptTemplate.fromMessages([
       [
         'system',
-        `You are an expert extraction algorithm.
-    Only extract relevant information from the text.
-    If you do not know the value of an attribute asked to extract,
-    return null for the attribute's value.`,
+        systemPrompt,
       ],
-      // Please see the how-to about improving performance with
-      // reference examples.
-      // ["placeholder", "{examples}"],
       ['human', '{text}'],
     ]);
 
-    for (const provider of this.providersPool) {
+    for (const model of models) {
+      const provider = this.llmsPool[model];
+      if (!provider) continue;
 
       try {
         const structured_llm = provider.withStructuredOutput(JOBS_SCHEMA);
