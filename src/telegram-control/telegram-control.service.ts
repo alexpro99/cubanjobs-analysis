@@ -8,6 +8,7 @@ import { TotalList } from 'telegram/Helpers';
 import { StringSession } from 'telegram/sessions';
 import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
+import { CubanJobs } from 'src/channel-data-extraction/entities/channel-entities/cubanjobs.entity';
 
 @Injectable()
 export class TelegramControlService {
@@ -21,6 +22,10 @@ export class TelegramControlService {
         private channelConfigRepository: Repository<ChannelConfiguration>,
         @InjectRepository(CachedMessage)
         private cachedMessageRepository: Repository<CachedMessage>,
+
+        @InjectRepository(CubanJobs)
+        private cubanJobsRepository: Repository<CubanJobs>,
+
         private readonly llmService: LlmService
     ) {
 
@@ -119,6 +124,33 @@ export class TelegramControlService {
         const extractedInformation = await this.llmService.extractInformationFromText(parsedMessages, extractionPrompt, ['ollama'])
 
         this.logger.log(`Información extraída: ${(JSON.stringify(extractedInformation))}`);
+
+        // Guardar la información extraída en la base de datos
+        await Promise.all(
+            extractedInformation["ofertas"].map(async (info: any) => {
+                try {
+                    const cubanJob = new CubanJobs();
+                    cubanJob.title = info.title;
+                    cubanJob.summary = info.summary;
+                    cubanJob.company = info.company;
+                    cubanJob.location = info.location;
+                    cubanJob.salary = info.salary;
+                    cubanJob.salary_currency = info.salary_currency;
+                    cubanJob.date = info.date;
+                    cubanJob.technologies = info.technologies;
+                    cubanJob.telegramUserId = info.telegramUserId;
+                    cubanJob.experience_level = info.experience_level;
+                    cubanJob.contract_type = info.contract_type;
+                    cubanJob.english_level = info.english_level;
+                    cubanJob.remote = info.remote;
+                    cubanJob.oferta_id = info.oferta_id;
+
+                    await this.cubanJobsRepository.save(cubanJob);
+                } catch (error) {
+                    this.logger.error(`Error guardando CubanJob: ${error.message}`, error.stack);
+                }
+            })
+        );
     }
 
     private async handleCacheMessages(messages: TotalList<Api.Message>, channelName: string): Promise<TotalList<Api.Message>> {
