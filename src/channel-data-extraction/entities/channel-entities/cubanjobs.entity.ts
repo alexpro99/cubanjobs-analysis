@@ -30,7 +30,7 @@ export class CubanJobs {
     @Column("simple-array", { nullable: true })
     technologies?: string[];
 
-    @Column()
+    @Column({ nullable: true })
     telegramUserId: number;
 
     @Column({ nullable: true })

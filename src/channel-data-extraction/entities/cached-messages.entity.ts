@@ -23,14 +23,20 @@ export class CachedMessage {
     @Column()
     authorId: string;
 
-    @Column()
+    @Column({ nullable: true })
     authorName: string;
 
     @Column()
     fromClass: string
 
+    @Column({ nullable: true, default: false })
+    isProcessed: boolean;
+
     @Column({ nullable: true })
     messageId?: number;
+
+    @Column({ default: 0 })
+    touchedTimes: number
 
     @CreateDateColumn()
     createdAt: Date;

@@ -2,13 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CachedMessage } from 'src/channel-data-extraction/entities/cached-messages.entity';
 import { ChannelConfiguration } from 'src/channel-data-extraction/entities/channel-configurations.entity';
-import { LlmService } from 'src/llm/llm.service';
 import { Api, TelegramClient } from 'telegram';
 import { TotalList } from 'telegram/Helpers';
 import { StringSession } from 'telegram/sessions';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import * as crypto from 'crypto';
-import { CubanJobs } from 'src/channel-data-extraction/entities/channel-entities/cubanjobs.entity';
 
 @Injectable()
 export class TelegramControlService {
@@ -22,11 +20,6 @@ export class TelegramControlService {
         private channelConfigRepository: Repository<ChannelConfiguration>,
         @InjectRepository(CachedMessage)
         private cachedMessageRepository: Repository<CachedMessage>,
-
-        @InjectRepository(CubanJobs)
-        private cubanJobsRepository: Repository<CubanJobs>,
-
-        private readonly llmService: LlmService
     ) {
 
         if (!process.env.API_ID) {
@@ -52,7 +45,6 @@ export class TelegramControlService {
     async extractAndProcessMessages(
         channelName: string,
         messagesPerExtraction: number,
-        extractionPrompt: string,
         channelId: string, // ID del canal para actualizar lastExtractedMessageId
     ): Promise<void> {
         this.logger.log(`Extrayendo y procesando mensajes para el canal: ${channelName}`);
@@ -73,7 +65,7 @@ export class TelegramControlService {
 
             if (newMessages && newMessages.length > 0) {
                 // 3. Procesar los mensajes (aquí va tu lógica de procesamiento)
-                await this.processMessages(newMessages, extractionPrompt, channelName);
+                await this.processMessages(newMessages, channelName);
 
                 // 4. Actualizar lastExtractedMessageId en la base de datos.  Asumo que los mensajes tienen un ID numérico y ordenado.
                 const lastMessageId = newMessages[newMessages.length - 1].id; // Asumiendo que 'id' es la propiedad del ID del mensaje
@@ -99,80 +91,37 @@ export class TelegramControlService {
     }
 
 
-    private async processMessages(messages: TotalList<Api.Message>, extractionPrompt: string, channelName: string): Promise<void> {
-        // Aquí iría tu lógica para procesar los mensajes extraídos,
-        // utilizando el extractionPrompt.
-        this.logger.log(`Procesando ${messages.length} mensajes con el prompt: ${extractionPrompt}`);
-
-        const filteredMessages = await this.handleCacheMessages(messages, channelName);
-
-        // TODO: Extraer la logica de aqui para abajo y encapsularla en el servicio de extraccion de datos
-        // filteredMessages en este caso habria que buscarlo en la tabla cached_messages de la bd
-        // entonces, ya no hace falta que se procesen solo 10 mensajes, pueden ser de 100 en 100 o 500 o más.
-        
-        const parsedMessages = filteredMessages.map((message, i) => {
-
-            return `Oferta ${i + 1}
-            
-            ${message.message}
-            Publicado: ${new Date(message.date * 1000)}
-            Por: ${JSON.stringify(message.fromId)}
-            oferta_id: ${message.id}
-
-            `
-
-            // Lógica de procesamiento del mensaje aquí
-        }).join('');
-
-        const extractedInformation = await this.llmService.extractInformationFromText(parsedMessages, extractionPrompt, ['ollama'])
-
-        this.logger.log(`Información extraída: ${(JSON.stringify(extractedInformation))}`);
-
-        // Guardar la información extraída en la base de datos
-        await Promise.all(
-            extractedInformation["ofertas"].map(async (info: any) => {
-                try {
-                    const cubanJob = new CubanJobs();
-                    cubanJob.title = info.title;
-                    cubanJob.summary = info.summary;
-                    cubanJob.company = info.company;
-                    cubanJob.location = info.location;
-                    cubanJob.salary = info.salary;
-                    cubanJob.salary_currency = info.salary_currency;
-                    cubanJob.date = info.date;
-                    cubanJob.technologies = info.technologies;
-                    cubanJob.telegramUserId = info.telegramUserId;
-                    cubanJob.experience_level = info.experience_level;
-                    cubanJob.contract_type = info.contract_type;
-                    cubanJob.english_level = info.english_level;
-                    cubanJob.remote = info.remote;
-                    cubanJob.oferta_id = info.oferta_id;
-
-                    await this.cubanJobsRepository.save(cubanJob);
-                } catch (error) {
-                    this.logger.error(`Error guardando CubanJob: ${error.message}`, error.stack);
-                }
-            })
-        );
+    private async processMessages(messages: TotalList<Api.Message>, channelName: string): Promise<void> {
+        await this.handleCacheMessages(messages, channelName);
     }
 
     private async handleCacheMessages(messages: TotalList<Api.Message>, channelName: string): Promise<TotalList<Api.Message>> {
         const filteredMessages: any[] = [];
 
+        // 1. Generar hashes para todos los mensajes
+        const messageHashes = messages.map(message => {
+            if (!message.message) return null;
+            return this.generateMessageHash(message);
+        }).filter(hash => hash !== null) as string[]; // Filtrar mensajes sin contenido
+
+
+        // 2. Consultar la base de datos en lote
+        const existingMessages = await this.cachedMessageRepository.find({
+            where: { messageHash: In(messageHashes) },
+        });
+
+        const existingHashes = new Set(existingMessages.map(msg => msg.messageHash));
+
+
         for (const message of messages) {
-            this.logger.log(`Procesando mensaje con id ${message.id} y contenido: ${message.message}`);
+            this.logger.log(`Procesando mensaje con id ${message.id} `);
             try {
                 if (!message.message) continue;
 
                 const hashedMessage = this.generateMessageHash(message);
 
-                // Verificar si el mensaje ya está en caché
-                const existingMessage = await this.cachedMessageRepository.findOne({
-                    where: { messageHash: hashedMessage },
-                });
-
-                if (existingMessage) {
-                    this.logger.log(`Mensaje ya procesado: ${existingMessage.messageHash}`);
+                if (existingHashes.has(hashedMessage)) {
+                    this.logger.log(`Mensaje ya procesado: ${hashedMessage}`);
                     continue; // Si el mensaje ya está en caché, saltar al siguiente
                 }
 
@@ -184,7 +133,7 @@ export class TelegramControlService {
                 cachedMessage.messageHash = hashedMessage;
                 cachedMessage.content = message.message;
                 cachedMessage.timestamp = new Date(message.date * 1000);
-                cachedMessage.authorId = message.fromId ? this.extractOwnerId(message)?.toString() || 'unknown' : 'unknown';
+                cachedMessage.authorId = message.fromId ? JSON.stringify(message.fromId) : 'unknown';
                 cachedMessage.fromClass = message.fromId ? message.fromId.className : 'unknown';
                 cachedMessage.messageId = message.id;
 

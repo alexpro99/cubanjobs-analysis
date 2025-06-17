@@ -16,9 +16,13 @@ export class ChannelConfiguration {
 
     @Column()
     extractionFrequency: number;
-
     @Column()
     messagesPerExtraction: number;
+
+    @Column({ nullable: true, default: 5 })
+    messagesAnalysisFrequency: number
+    @Column({ nullable: true, default: 10 })
+    messageAnalysisBatchSize: number
 
     @Column("text")
     extractionPrompt: string;

@@ -8,7 +8,7 @@ import { CubanJobs } from 'src/channel-data-extraction/entities/channel-entities
 
 @Module({
   providers: [TelegramControlService],
-  imports: [TypeOrmModule.forFeature([ChannelConfiguration]), TypeOrmModule.forFeature([CachedMessage]), TypeOrmModule.forFeature([CubanJobs]), LlmModule],
+  imports: [TypeOrmModule.forFeature([ChannelConfiguration]), TypeOrmModule.forFeature([CachedMessage])],
   exports: [TelegramControlService],
 })
 export class TelegramControlModule { }

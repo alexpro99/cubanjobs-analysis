@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ChatOpenAI, OpenAI } from '@langchain/openai';
+import { ChatOpenAI } from '@langchain/openai';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import * as dotenv from 'dotenv';
-import { JOBS_SCHEMA } from './schemas/jobs.schema';
 import { ChatOllama } from '@langchain/ollama';
 import { JsonOutputParser } from "@langchain/core/output_parsers";
 
@@ -41,7 +40,9 @@ export class LlmService {
         model: 'gemini',
       }),
       ollama: new ChatOllama({
-        model: 'gemma3:4b'
+        model: 'gemma3:4b',
+        streaming: false,
+        keepAlive: '20m'
       })
     }
 
