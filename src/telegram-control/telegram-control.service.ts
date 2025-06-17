@@ -106,7 +106,10 @@ export class TelegramControlService {
 
         const filteredMessages = await this.handleCacheMessages(messages, channelName);
 
-
+        // TODO: Extraer la logica de aqui para abajo y encapsularla en el servicio de extraccion de datos
+        // filteredMessages en este caso habria que buscarlo en la tabla cached_messages de la bd
+        // entonces, ya no hace falta que se procesen solo 10 mensajes, pueden ser de 100 en 100 o 500 o más.
+        
         const parsedMessages = filteredMessages.map((message, i) => {
 
             return `Oferta ${i + 1}
