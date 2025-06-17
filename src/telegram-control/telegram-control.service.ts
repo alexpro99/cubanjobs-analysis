@@ -35,7 +35,9 @@ export class TelegramControlService {
             this.stringSession,
             parseInt(process.env.API_ID),
             process.env.API_HASH,
-            {},
+            {
+                retryDelay: 5 * 1000 * 60,
+            },
         );
 
         this.client.connect()
