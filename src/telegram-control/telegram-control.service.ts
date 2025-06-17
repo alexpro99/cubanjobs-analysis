@@ -181,8 +181,8 @@ export class TelegramControlService {
                 cachedMessage.messageHash = hashedMessage;
                 cachedMessage.content = message.message;
                 cachedMessage.timestamp = new Date(message.date * 1000);
-                cachedMessage.authorId = message.fromId ? JSON.stringify(message.fromId) : 'unknown';
-                cachedMessage.authorName = message.postAuthor ? message.postAuthor : 'unknown';
+                cachedMessage.authorId = message.fromId ? this.extractOwnerId(message)?.toString() || 'unknown' : 'unknown';
+                cachedMessage.fromClass = message.fromId ? message.fromId.className : 'unknown';
                 cachedMessage.messageId = message.id;
 
                 if (channelConfig) {
@@ -207,6 +207,13 @@ export class TelegramControlService {
         const authorId = message.fromId ? message.fromId.toString() : 'unknown';
 
         return crypto.createHash('sha256').update(content + authorId).digest('hex');
+    }
+
+    private extractOwnerId(message: Api.Message): bigInt.BigInteger | undefined {
+
+        if (message.fromId?.className == 'PeerUser') return message.fromId.userId
+        else if (message.fromId?.className == 'PeerChannel') return message.fromId.channelId
+        else if (message.fromId?.className == 'PeerChat') return message.fromId.chatId
     }
 
 
