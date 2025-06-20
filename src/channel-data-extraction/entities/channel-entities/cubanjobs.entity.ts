@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn } from "typeorm";
+import { CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Column } from "typeorm";
 
 @Entity()
@@ -47,4 +47,13 @@ export class CubanJobs {
 
     @Column()
     oferta_id: number;
+
+    @Column({nullable: true})
+    extractedWith: string
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
 }

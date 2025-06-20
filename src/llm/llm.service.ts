@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ChatOpenAI } from '@langchain/openai';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
@@ -10,6 +10,8 @@ dotenv.config(); // Carga las variables de entorno desde .env
 
 @Injectable()
 export class LlmService {
+
+  private readonly logger = new Logger(LlmService.name);
 
   private llmsPool: {
     openai: ChatOpenAI;
@@ -33,11 +35,14 @@ export class LlmService {
       openai: new ChatOpenAI({
         openAIApiKey: process.env.OPENAI_API_KEY,
         model: 'gpt-4.1',
-        temperature: 0,
+        streaming: false,
+        maxRetries: 0
       }),
       googleGemini: new ChatGoogleGenerativeAI({
         apiKey: process.env.GOOGLE_API_KEY,
-        model: 'gemini',
+        model: 'gemini-2.5-flash-lite-preview-06-17',
+        streaming: false,
+        maxRetries: 0
       }),
       ollama: new ChatOllama({
         model: 'gemma3:4b',
@@ -73,14 +78,16 @@ export class LlmService {
     for (const model of models) {
       const provider: ChatOpenAI | ChatGoogleGenerativeAI | ChatOllama | undefined = this.llmsPool[model];
       if (!provider) continue;
+      this.logger.log(`Usando el modelo: ${provider.model}`)
 
       try {
         const prompt = await promptTemplate.partial({ text: message });
 
-        return await prompt.pipe(provider).pipe(parser).invoke({
+        const extractedInformation = await prompt.pipe(provider).pipe(parser).invoke({
           text: message,
         });
 
+        return { extractedInformation, modelName: provider.model }
       } catch (error) {
         console.error("Llamada Fallida para: ", provider.model)
         console.log(error)
