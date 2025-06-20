@@ -124,10 +124,11 @@ export class ChannelDataExtractionService implements OnModuleInit {
         
                     `
 
-            // Lógica de procesamiento del mensaje aquí
         }).join('');
 
-        const extractedInformation = await this.llmService.extractInformationFromText(mappedMessages, extractionPrompt, ['ollama'])
+        const llmPriorityOrder = process.env['LLM_PROVIDER_ORDER']?.split(' ')
+
+        const { extractedInformation, modelName } = await this.llmService.extractInformationFromText(mappedMessages, extractionPrompt, llmPriorityOrder)
 
         if (!extractedInformation || !extractedInformation["ofertas"] || extractedInformation["ofertas"].length === 0) {
             this.logger.warn(`No se extrajo información válida del texto proporcionado para el canal ${channelId}.`);
@@ -155,6 +156,7 @@ export class ChannelDataExtractionService implements OnModuleInit {
                     cubanJob.english_level = info.english_level;
                     cubanJob.remote = info.remote;
                     cubanJob.oferta_id = info.oferta_id;
+                    cubanJob.extractedWith = modelName
 
                     await this.cachedMessageRepository.update(
                         { messageId: info.oferta_id, channel: { id: channelId } },
