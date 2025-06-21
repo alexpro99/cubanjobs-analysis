@@ -1,76 +1,93 @@
+# Análisis de Canales de Telegram para la Extracción de Ofertas de Empleo
 
-## Description
+Este proyecto representa un estado del arte en la monitorización continua de canales de Telegram y el análisis de sus mensajes. Se centra en la extracción de ofertas de empleo y su almacenamiento en una base de datos PostgreSQL, utilizando modelos de lenguaje (LLM) para el procesamiento y la identificación de la información relevante.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Conexión a Telegram como Usuario
 
-## Project setup
+Para conectarse a Telegram como usuario, se utiliza la librería GramJS. Siga estos pasos:
 
-```bash
-$ pnpm install
-```
+1.  **Obtenga su `api_id` y `api_hash`:**
+    *   Diríjase a [my.telegram.org](https://my.telegram.org/) (se recomienda abrir en modo incógnito para evitar problemas con extensiones).
+    *   Inicie sesión con su cuenta de Telegram.
+    *   Vaya a "API development tools" y complete los campos requeridos para crear una nueva aplicación.
+    *   Anote el `api_id` y el `api_hash` proporcionados.
 
-## Compile and run the project
+2.  **Ejecute el script `testGram.js`:**
+    *   Este script le permitirá iniciar sesión con su cuenta de Telegram o con la cuenta que desee utilizar para la monitorización.
+    *   Siga las instrucciones del script para completar el proceso de autenticación.
 
-```bash
-# development
-$ pnpm run start
+Consulte la [documentación de GramJS](https://gram.js.org/) para obtener más detalles sobre la configuración y el uso de la librería.
 
-# watch mode
-$ pnpm run start:dev
+## Integración con Modelos de Lenguaje (LLM)
 
-# production mode
-$ pnpm run start:prod
-```
+La API está diseñada para integrarse con diversos modelos de lenguaje, incluyendo:
 
-## Run tests
+*   **OpenAI**
+*   **Google AI**
+*   **Ollama**
 
-```bash
-# unit tests
-$ pnpm run test
+Personalmente, se ha obtenido un buen rendimiento con el modelo `gemma3:4b` de Ollama.
 
-# e2e tests
-$ pnpm run test:e2e
+## Project Setup
 
-# test coverage
-$ pnpm run test:cov
-```
+### Requisitos Previos
 
-## Deployment
+*   [Node.js](https://nodejs.org/) (v18 o superior)
+*   [Docker](https://www.docker.com/) (para la base de datos PostgreSQL)
+*   [Ollama](https://ollama.com/) (opcional, para el modelo `gemma3:4b` u otros modelos locales)
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### Instalación
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+1.  **Clonar el repositorio:**
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
+    ```bash
+    git clone <repository_url>
+    cd cubanjobs-analysis
+    ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+2.  **Instalar las dependencias:**
 
-## Resources
+    ```bash
+    npm install
+    ```
 
-Check out a few resources that may come in handy when working with NestJS:
+3.  **Configurar las variables de entorno:**
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+    *   Copiar el archivo `.env.example` a `.env` y modificarlo con sus credenciales.
 
-## Support
+        ```bash
+        cp .env.example .env
+        nano .env
+        ```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+    *   Asegúrese de configurar las siguientes variables:
+        *   `API_ID` y `API_HASH` de Telegram.
+        *   Claves API para los LLMs que desee utilizar (OpenAI, Google AI, Groq, etc.).
+        *   Credenciales de la base de datos PostgreSQL.
 
-## Stay in touch
+4.  **Iniciar la base de datos PostgreSQL con Docker:**
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+    ```bash
+    docker-compose up -d
+    ```
 
-## License
+### Contributing Guidelines
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Si desea contribuir a este proyecto, siga estas pautas:
+
+*   Reporte cualquier problema o error a través de la sección "Issues" en GitHub.
+*   Envíe solicitudes de extracción (pull requests) con mejoras, correcciones o nuevas funcionalidades.
+*   Asegúrese de que el código siga las convenciones de estilo del proyecto.
+*   Documente cualquier cambio importante en el código.
+
+### License Information
+
+Este proyecto se lanza bajo la licencia MIT.
+
+### Contact Information
+
+Si tiene alguna pregunta o necesita ayuda, puede ponerse en contacto a través de la sección "Issues" en GitHub.
+
+### Disclaimer
+
+La información extraída de los canales de Telegram puede no ser precisa o estar actualizada. Este proyecto no se hace responsable de la exactitud o fiabilidad de las ofertas de empleo mostradas.
