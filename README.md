@@ -1,6 +1,6 @@
 # Análisis de Canales de Telegram para la Extracción de Ofertas de Empleo
 
-Este proyecto representa un estado del arte en la monitorización continua de canales de Telegram y el análisis de sus mensajes. Se centra en la extracción de ofertas de empleo y su almacenamiento en una base de datos PostgreSQL, utilizando modelos de lenguaje (LLM) para el procesamiento y la identificación de la información relevante.
+Este proyecto desarrolla un modelo de concepto para la extracción automatizada de datos no estructurados de los canales de Telegram y su transformación en una base de datos estructurada dentro de PostgreSQL. Aprovechando LLMs, el sistema realiza un entendimiento del lenguaje natural para identificar y categorizar ofertas de empleo, convirtiéndolas en un formato estándar adecuado para el almacenamiento y el análisis.
 
 ## Conexión a Telegram como Usuario
 
@@ -12,7 +12,7 @@ Para conectarse a Telegram como usuario, se utiliza la librería GramJS. Siga es
     *   Vaya a "API development tools" y complete los campos requeridos para crear una nueva aplicación.
     *   Anote el `api_id` y el `api_hash` proporcionados.
 
-2.  **Ejecute el script `testGram.js`:**
+2.  **Ejecute el script `logginTelegram.js`:**
     *   Este script le permitirá iniciar sesión con su cuenta de Telegram o con la cuenta que desee utilizar para la monitorización.
     *   Siga las instrucciones del script para completar el proceso de autenticación.
 
@@ -48,7 +48,7 @@ Personalmente, se ha obtenido un buen rendimiento con el modelo `gemma3:4b` de O
 2.  **Instalar las dependencias:**
 
     ```bash
-    npm install
+    pnpm install
     ```
 
 3.  **Configurar las variables de entorno:**
@@ -70,6 +70,12 @@ Personalmente, se ha obtenido un buen rendimiento con el modelo `gemma3:4b` de O
     ```bash
     docker-compose up -d
     ```
+
+5. **Correr seeds**
+    ```bash
+    pnpm seed
+    ```
+
 
 ### Contributing Guidelines
 
