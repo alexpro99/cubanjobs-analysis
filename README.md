@@ -32,9 +32,10 @@ Personalmente, se ha obtenido un buen rendimiento con el modelo `gemma3:4b` de O
 
 ### Requisitos Previos
 
-*   [Node.js](https://nodejs.org/) (v18 o superior)
-*   [Docker](https://www.docker.com/) (para la base de datos PostgreSQL)
-*   [Ollama](https://ollama.com/) (opcional, para el modelo `gemma3:4b` u otros modelos locales)
+* [Node.js](https://nodejs.org/) (v18 o superior)
+* [NestJS](https://nestjs.com/) (framework utilizado para la estructura del proyecto)
+* [Docker](https://www.docker.com/) (para la base de datos PostgreSQL)
+* [Ollama](https://ollama.com/) (opcional, para el modelo `gemma3:4b` u otros modelos locales)
 
 ### Instalación
 
@@ -77,7 +78,7 @@ Personalmente, se ha obtenido un buen rendimiento con el modelo `gemma3:4b` de O
     ```
 
 
-### Contributing Guidelines
+### Como contribuir? 
 
 Si desea contribuir a este proyecto, siga estas pautas:
 
@@ -86,11 +87,11 @@ Si desea contribuir a este proyecto, siga estas pautas:
 *   Asegúrese de que el código siga las convenciones de estilo del proyecto.
 *   Documente cualquier cambio importante en el código.
 
-### License Information
+### Lisencia
 
 Este proyecto se lanza bajo la licencia MIT.
 
-### Contact Information
+### Contacto
 
 Si tiene alguna pregunta o necesita ayuda, puede ponerse en contacto a través de la sección "Issues" en GitHub.
 
