@@ -30,4 +30,9 @@ export class ChannelConfiguration {
     @Column({ default: 0 })
     lastExtractedMessageId: number;
 
+    @Column({ default: false })
+    disabled: boolean;
+
+    @Column({ default: false })
+    disableAnalysis: boolean;
 }

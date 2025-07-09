@@ -36,16 +36,18 @@ export class ChannelDataExtractionService implements OnModuleInit {
 
     async configureChannels() {
         this.logger.log('Configurando canales...');
-        const channels = await this.channelConfigRepository.find();
+        const channels = await this.channelConfigRepository.find({ where: { disabled: false } });
+        console.log(`Canales para procesar: ${channels.map(c => c.channelName).join(', ') || 'Ninguno'}`);
 
         for (const channel of channels) {
+            if (channel.disabled) continue
             this.logger.log(`Configurando canal: ${channel.channelName}`);
             this.createCronJobExtractMessages(channel);
-            this.createCronJobDataExtraction(channel);
+
+            if (!channel.disableAnalysis)
+                this.createCronJobDataExtraction(channel);
         }
     }
-
-
 
     private createCronJob(
         name: string,

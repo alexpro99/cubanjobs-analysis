@@ -63,7 +63,7 @@ export class TelegramControlService {
             const lastExtractedMessageId = channelConfig.lastExtractedMessageId;
 
             // 2. Lógica para conectarse a Telegram, obtener mensajes (usando lastExtractedMessageId), y procesarlos
-            const newMessages = await this.fetchMessagesFromTelegram(channelName, messagesPerExtraction, lastExtractedMessageId);  // Reemplaza con tu lógica real
+            const newMessages = await this.fetchMessagesFromTelegram(channelName, messagesPerExtraction, lastExtractedMessageId); 
 
             if (newMessages && newMessages.length > 0) {
                 // 3. Procesar los mensajes (aquí va tu lógica de procesamiento)
