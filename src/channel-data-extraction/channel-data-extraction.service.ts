@@ -37,7 +37,7 @@ export class ChannelDataExtractionService implements OnModuleInit {
     async configureChannels() {
         this.logger.log('Configurando canales...');
         const channels = await this.channelConfigRepository.find({ where: { disabled: false } });
-        console.log(`Canales para procesar: ${channels.map(c => c.channelName).join(', ') || 'Ninguno'}`);
+        this.logger.log(`Canales para procesar: ${channels.map(c => c.channelName).join(', ') || 'Ninguno'}`);
 
         for (const channel of channels) {
             if (channel.disabled) continue
