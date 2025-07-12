@@ -35,4 +35,7 @@ export class ChannelConfiguration {
 
     @Column({ default: false })
     disableAnalysis: boolean;
+
+    @Column({ nullable: true })
+    targetEntity: string;
 }
