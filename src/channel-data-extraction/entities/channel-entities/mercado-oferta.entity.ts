@@ -59,6 +59,9 @@ export class MercadoOferta {
   @Column({ nullable: true })
   oferta_id: number;
 
+  @Column({ nullable: false, default: new Date() })
+  fecha: Date;
+
   @Column({ nullable: true })
   extractedWith: string;
 

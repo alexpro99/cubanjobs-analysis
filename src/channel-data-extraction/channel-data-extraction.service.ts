@@ -175,8 +175,6 @@ export class ChannelDataExtractionService implements OnModuleInit {
         llmPriorityOrder,
       );
 
-    console.log(JSON.stringify(extractedInformation, null, 2));
-
     if (
       !extractedInformation ||
       !Array.isArray(extractedInformation['ofertas']) ||
@@ -189,7 +187,7 @@ export class ChannelDataExtractionService implements OnModuleInit {
     }
 
     this.logger.log(
-      `Información extraída para ${channelConfig.channelName}: ${JSON.stringify(extractedInformation)}`,
+      `Información extraída para ${channelConfig.channelName}: ${JSON.stringify(extractedInformation, null, 2)}`,
     );
 
     const targetRepository = this.getTargetRepository(
